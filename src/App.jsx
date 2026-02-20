@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import './App.css';
 
@@ -45,93 +45,65 @@ function MagicTerminalSection() {
   const cmdLength = commandText.length;
 
   const [typedCommand, setTypedCommand] = useState("");
-  const [commandFinished, setCommandFinished] = useState(false);
-  const [progressStep, setProgressStep] = useState(0);
-  const [showBottomPrompt, setShowBottomPrompt] = useState(false);
-  const [isExpanding, setIsExpanding] = useState(false);
+  const [currentProgress, setCurrentProgress] = useState(0);
   const [showProgressBar, setShowProgressBar] = useState(false);
-  const [sequenceDone, setSequenceDone] = useState(false);
+  const [showBottomPrompt, setShowBottomPrompt] = useState(false);
 
-  // Lock global scroll when progress bar starts, and unlock when expansion is done
-  useEffect(() => {
-    if (showProgressBar && !sequenceDone) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = ''; // restore scrolling
-    }
-  }, [showProgressBar, sequenceDone]);
+  // Scroll mappings mapped tightly to scrollYProgress
+  const typedCount = useTransform(scrollYProgress, [0, 0.25], [0, cmdLength]);
+  const progressVal = useTransform(scrollYProgress, [0.3, 0.45], [0, 20]);
 
-  // 1. Scroll-based Typing
-  useEffect(() => {
-    return scrollYProgress.onChange((v) => {
-      if (commandFinished) return; // Don't reverse if already finished typing
+  useMotionValueEvent(typedCount, "change", (latest) => {
+    setTypedCommand(commandText.substring(0, Math.floor(latest)));
+  });
 
-      if (v < 0.25) {
-        let count = Math.floor((v / 0.25) * cmdLength);
-        setTypedCommand(commandText.substring(0, count));
-      } else {
-        setTypedCommand(commandText);
-        setCommandFinished(true); // Trigger auto-load
-      }
-    });
-  }, [scrollYProgress, cmdLength, commandFinished]);
+  useMotionValueEvent(progressVal, "change", (latest) => {
+    setCurrentProgress(Math.floor(latest));
+  });
 
-  // 2. Sequential Terminal Sequence
-  useEffect(() => {
-    if (commandFinished && progressStep < 20) {
-      // Step A: Wait then show the bar at 0%
-      const startTimeout = setTimeout(() => {
-        setShowProgressBar(true);
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    setShowProgressBar(latest > 0.28);
+    setShowBottomPrompt(latest > 0.5);
+  });
 
-        // Wait briefly so the user sees the empty bar before it fills
-        setTimeout(() => {
-          const interval = setInterval(() => {
-            setProgressStep(prev => {
-              if (prev >= 19) {
-                clearInterval(interval);
+  // Terminal window expanding
+  const terminalScale = useTransform(scrollYProgress, [0.55, 0.75], [1, 25]);
+  const terminalOpacity = useTransform(scrollYProgress, [0.55, 0.75], [1, 0]);
 
-                // Step B: Loading finished, wait then show bottom prompt
-                setTimeout(() => {
-                  setShowBottomPrompt(true);
+  // Orange bg fades in directly alongside terminal fading out
+  const orangeBgOpacity = useTransform(scrollYProgress, [0.55, 0.75], [0, 1]);
 
-                  // Step C: Prompt shown, wait final delay then expand
-                  setTimeout(() => {
-                    setIsExpanding(true);
-                    // Step D: Unlock scroll after the expansion transition completes
-                    setTimeout(() => {
-                      setSequenceDone(true);
-                    }, 1200);
-                  }, 1200); // Final delay before site entrance
-
-                }, 800); // Delay before second root@ appears
-
-                return 20;
-              }
-              return prev + 1;
-            });
-          }, 1300 / 20);
-        }, 500); // 500ms delay before filling starts
-
-      }, 800); // 800ms initial wait before bar text appears
-
-      return () => clearTimeout(startTimeout);
-    }
-  }, [commandFinished]); // Only run once when command finishes
+  // Container comes in slightly after
+  const containerOpacity = useTransform(scrollYProgress, [0.7, 0.9], [0, 1]);
+  const containerScale = useTransform(scrollYProgress, [0.7, 0.9], [0.8, 1]);
+  const containerY = useTransform(scrollYProgress, [0.7, 0.9], [40, 0]);
 
   return (
-    <div className="magic-section-wrapper" ref={sectionRef}>
+    <div className="magic-section-wrapper" ref={sectionRef} style={{ height: "300vh" }}>
       <div className="sticky-terminal-container" style={{ zIndex: 10 }}>
-        <PixelStarsBackground isLocked={showProgressBar && !sequenceDone} scrollProgress={scrollYProgress} />
+        <PixelStarsBackground isLocked={false} scrollProgress={scrollYProgress} />
+
+        {/* Orange section transition dot background */}
+        <motion.div
+          className="orange-dot-bg"
+          style={{
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1,
+            backgroundColor: 'var(--mistral-orange)',
+            backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.2) 2px, transparent 2px)',
+            backgroundSize: '24px 24px',
+            opacity: orangeBgOpacity
+          }}
+        />
 
         {/* The terminal window container that scales up drastically */}
         <motion.div
           className="terminal-window"
-          animate={{
-            scale: isExpanding ? 25 : 1,
-            opacity: isExpanding ? 0 : 1
+          style={{
+            scale: terminalScale,
+            opacity: terminalOpacity,
+            transformOrigin: "center center",
+            zIndex: 2
           }}
-          transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
-          style={{ transformOrigin: "center center" }}
         >
           {/* Original Terminal Content */}
           <div className="terminal-inner">
@@ -152,17 +124,17 @@ function MagicTerminalSection() {
 
               {/* Fake Loading Progress */}
               <div className="terminal-progress-area">
-                {(commandFinished && showProgressBar) && (
+                {showProgressBar && (
                   <div className="progress-bar-text" style={{ marginTop: '2rem' }}>
                     <span style={{ color: 'var(--terminal-text)' }}>Processing dependencies... </span>
                     <span style={{ color: 'var(--text-main)' }}>[</span>
-                    <span style={{ color: 'var(--mistral-orange)' }}>{"#".repeat(progressStep)}</span>
-                    <span style={{ color: 'var(--mistral-border)' }}>{"-".repeat(20 - progressStep)}</span>
+                    <span style={{ color: 'var(--mistral-orange)' }}>{"#".repeat(currentProgress)}</span>
+                    <span style={{ color: 'var(--mistral-border)' }}>{"-".repeat(20 - currentProgress)}</span>
                     <span style={{ color: 'var(--text-main)' }}>]</span>
-                    <span style={{ color: 'var(--terminal-text)' }}>  {progressStep.toString().padStart(2, ' ')}/20</span>
+                    <span style={{ color: 'var(--terminal-text)' }}>  {currentProgress.toString().padStart(2, ' ')}/20</span>
                   </div>
                 )}
-                {progressStep === 20 && (
+                {currentProgress === 20 && (
                   <div className="progress-bar-text success-msg" style={{ marginTop: '1rem', color: '#FFCC00', fontWeight: 'bold' }}>
                     &gt; Success: Applicant data loaded. Expanding protocol...
                   </div>
@@ -192,9 +164,10 @@ function MagicTerminalSection() {
         {/* Global Scroll Hint if user isn't scrolling initially */}
         <motion.div
           className="global-scroll-hint"
-          animate={{ opacity: (typedCommand === "" && !commandFinished) ? 1 : 0 }}
-          transition={{ delay: 2, duration: 1 }}
-          style={{ position: "absolute", bottom: "5%" }}
+          style={{
+            opacity: useTransform(scrollYProgress, [0, 0.05], [1, 0]),
+            position: "absolute", bottom: "5%", zIndex: 2
+          }}
         >
           (scroll down to initialize protocol)
         </motion.div>
@@ -202,27 +175,24 @@ function MagicTerminalSection() {
         {/* Orange Section Transition Content */}
         <motion.div
           className="why-apply-content"
-          animate={{
-            opacity: isExpanding ? 1 : 0,
-            scale: isExpanding ? 1 : 0.8,
-            y: isExpanding ? 0 : 40
-          }}
-          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
           style={{
-            pointerEvents: isExpanding ? 'auto' : 'none',
+            opacity: containerOpacity,
+            scale: containerScale,
+            y: containerY,
             position: 'absolute',
-            zIndex: 10
+            zIndex: 10,
+            pointerEvents: 'none'
           }}
         >
-          <div className="whitish-container" style={{ backgroundColor: '#FF7000', color: '#FAFAFA' }}>
+          <div className="whitish-container">
             <div className="why-header">
-              <img src={trophyImg} alt="Trophy" className="trophy-icon-dark" style={{ filter: 'brightness(0) invert(1)' }} />
-              <h2 style={{ color: '#FAFAFA' }}>Why I want to apply</h2>
+              <img src={trophyImg} alt="Trophy" className="trophy-icon-dark" />
+              <h2>Why I want to apply</h2>
             </div>
-            <div className="why-body-text" style={{ color: '#FAFAFA' }}>
+            <div className="why-body-text">
               <p>I am driven by pushing the limits of AI and building performant, scalable solutions.</p>
               <p>Combining Mistral's state-of-the-art open models with my passion for engineering and design forms the ultimate challenge.</p>
-              <p className="orange-shimmer" style={{ color: '#FAFAFA', textShadow: '0 0 10px rgba(255,255,255,0.5)' }}>&gt; I'm ready to hack.</p>
+              <p className="orange-shimmer">&gt; I'm ready to hack.</p>
             </div>
           </div>
         </motion.div>
