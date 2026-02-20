@@ -67,13 +67,17 @@ body {
   box-shadow: 0 40px 100px rgba(0, 0, 0, 0.3), 0 0 0 1px #333;
   position: relative;
   overflow: hidden;
-  will-change: transform, width, height, border-radius, background-color;
   background-color: var(--terminal-bg);
   border-radius: 12px;
   width: 800px;
   /* Less wide as requested */
   max-width: 95vw;
   height: 75vh;
+  /* Fix Chrome rendering bugs on massive scale */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .terminal-inner {
@@ -106,7 +110,7 @@ body {
   font-size: clamp(0.2rem, 0.6vw, 0.9rem);
   line-height: 1.2;
   margin: 0 0 2rem 0;
-  padding-left: 1.5rem;
+  padding-left: 0;
   white-space: pre;
   /* Orange to Yellow gradient requested by user */
   background: linear-gradient(180deg, var(--mistral-orange) 10%, #FFCC00 90%);
@@ -133,8 +137,8 @@ body {
 
 .terminal-prompt-line {
   margin-bottom: 1rem;
-  display: flex;
-  flex-wrap: wrap;
+  line-height: 1.5;
+  word-wrap: break-word;
 }
 
 .user-host {
@@ -150,11 +154,13 @@ body {
 .blinking-cursor {
   display: inline-block;
   width: 10px;
-  height: 1.1em;
+  height: 1em;
   background-color: var(--terminal-text);
   animation: blink 1s step-end infinite;
-  vertical-align: bottom;
+  vertical-align: text-bottom;
   margin-left: 4px;
+  position: relative;
+  top: -2px;
 }
 
 .terminal-progress-area {
@@ -171,7 +177,7 @@ body {
 }
 
 .success-msg {
-  color: #FFCC00;
+  color: #D96916;
   /* Yellow success message */
   margin-top: 0.5rem;
 }

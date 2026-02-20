@@ -41,6 +41,13 @@ function MagicTerminalSection() {
     offset: ["start start", "end end"]
   });
 
+  // Apply a spring dampening to smooth out chunky mouse wheel scrolls
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   const commandText = "./analyze_applicant --id xavier_jara --extract motivation";
   const cmdLength = commandText.length;
 
@@ -49,9 +56,10 @@ function MagicTerminalSection() {
   const [showProgressBar, setShowProgressBar] = useState(false);
   const [showBottomPrompt, setShowBottomPrompt] = useState(false);
 
-  // Scroll mappings mapped tightly to scrollYProgress
+  // Scroll mappings mapped tightly to raw scrollYProgress
   const typedCount = useTransform(scrollYProgress, [0, 0.25], [0, cmdLength]);
-  const progressVal = useTransform(scrollYProgress, [0.3, 0.45], [0, 20]);
+  // Offset start to 0.35 so it sits visibly at 0 for a small scroll distance
+  const progressVal = useTransform(scrollYProgress, [0.35, 0.5], [0, 20]);
 
   useMotionValueEvent(typedCount, "change", (latest) => {
     setTypedCommand(commandText.substring(0, Math.floor(latest)));
@@ -62,21 +70,21 @@ function MagicTerminalSection() {
   });
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    setShowProgressBar(latest > 0.28);
-    setShowBottomPrompt(latest > 0.5);
+    setShowProgressBar(latest >= 0.28);
+    setShowBottomPrompt(latest > 0.52);
   });
 
-  // Terminal window expanding
-  const terminalScale = useTransform(scrollYProgress, [0.55, 0.75], [1, 25]);
-  const terminalOpacity = useTransform(scrollYProgress, [0.55, 0.75], [1, 0]);
+  // Terminal window expanding (slow start -> fast middle -> slow end)
+  const terminalScale = useTransform(smoothProgress, [0.6, 0.65, 0.75, 0.8], [1, 1.5, 20, 25]);
+  const terminalOpacity = useTransform(smoothProgress, [0.6, 0.8], [1, 0]);
 
   // Orange bg fades in directly alongside terminal fading out
-  const orangeBgOpacity = useTransform(scrollYProgress, [0.55, 0.75], [0, 1]);
+  const orangeBgOpacity = useTransform(smoothProgress, [0.6, 0.8], [0, 1]);
 
   // Container comes in slightly after
-  const containerOpacity = useTransform(scrollYProgress, [0.7, 0.9], [0, 1]);
-  const containerScale = useTransform(scrollYProgress, [0.7, 0.9], [0.8, 1]);
-  const containerY = useTransform(scrollYProgress, [0.7, 0.9], [40, 0]);
+  const containerOpacity = useTransform(smoothProgress, [0.75, 0.95], [0, 1]);
+  const containerScale = useTransform(smoothProgress, [0.75, 0.95], [0.8, 1]);
+  const containerY = useTransform(smoothProgress, [0.75, 0.95], [40, 0]);
 
   return (
     <div className="magic-section-wrapper" ref={sectionRef} style={{ height: "300vh" }}>
@@ -113,13 +121,13 @@ function MagicTerminalSection() {
               <div className="terminal-info">
                 <p>NAME:     <span className="highlight-dark-orange">Xavier Jara</span></p>
                 <p>AGE:      <span className="highlight-dark-orange">18</span></p>
-                <p>TERMINAL: <span className="highlight-dark-orange">Lycée Sainte Marie Antony</span></p>
+                <p>Class: <span className="highlight-dark-orange">Terminale (Lycée Sainte Marie Antony)</span></p>
               </div>
 
               <div className="terminal-prompt-line">
                 <span className="user-host">root@mistral:~$</span>
                 <span className="typed-cmd">{typedCommand}</span>
-                {!showBottomPrompt && <span className="blinking-cursor"></span>}
+                {!showProgressBar && <span className="blinking-cursor"></span>}
               </div>
 
               {/* Fake Loading Progress */}
@@ -135,7 +143,7 @@ function MagicTerminalSection() {
                   </div>
                 )}
                 {currentProgress === 20 && (
-                  <div className="progress-bar-text success-msg" style={{ marginTop: '1rem', color: '#FFCC00', fontWeight: 'bold' }}>
+                  <div className="progress-bar-text success-msg" style={{ marginTop: '1rem', fontWeight: 'bold' }}>
                     &gt; Success: Applicant data loaded. Expanding protocol...
                   </div>
                 )}
