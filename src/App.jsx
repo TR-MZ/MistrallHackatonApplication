@@ -75,7 +75,8 @@ function MagicTerminalSection() {
   });
 
   // Terminal window expanding (slow start -> fast middle -> slow end)
-  const terminalScale = useTransform(smoothProgress, [0.6, 0.65, 0.75, 0.8], [1, 1.5, 20, 25]);
+  // Max scale capped at 15 to prevent Chrome GPU texture limit crash (> 8192px cutoff)
+  const terminalScale = useTransform(smoothProgress, [0.6, 0.65, 0.75, 0.8], [1, 1.5, 10, 15]);
   const terminalOpacity = useTransform(smoothProgress, [0.6, 0.8], [1, 0]);
 
   // Orange bg fades in directly alongside terminal fading out

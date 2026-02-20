@@ -72,7 +72,7 @@ body {
   width: 800px;
   /* Less wide as requested */
   max-width: 95vw;
-  height: 75vh;
+  aspect-ratio: 640.8 / 451.5;
   /* Fix Chrome rendering bugs on massive scale */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -171,9 +171,13 @@ body {
 
 .progress-bar-text {
   font-family: var(--font-pixel);
-  font-size: 1.4rem;
+  font-size: 1em;
+  /* Force strict inherit to stop Safari inflation */
+  font-weight: 400;
+  /* Safari sometimes synthetic-bolds pixel fonts */
   color: var(--terminal-text);
   white-space: pre;
+  -webkit-text-size-adjust: none;
 }
 
 .success-msg {
