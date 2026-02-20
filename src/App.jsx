@@ -1,9 +1,11 @@
+// eslint-disable-next-line no-unused-vars
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import './App.css';
 
 import trophyImg from './assets/trophy.png';
 import terminalImg from './assets/terminal.png';
+import PixelStarsBackground from './PixelStarsBackground';
 
 const ASCII_ART = `███╗   ███╗██╗███████╗████████╗██████╗  █████╗ ██╗         ██╗    ██╗██╗    ██╗    
 ████╗ ████║██║██╔════╝╚══██╔══╝██╔══██╗██╔══██╗██║         ██║    ██║██║    ██║    
@@ -47,6 +49,17 @@ function MagicTerminalSection() {
   const [progressStep, setProgressStep] = useState(0);
   const [showBottomPrompt, setShowBottomPrompt] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
+  const [showProgressBar, setShowProgressBar] = useState(false);
+  const [sequenceDone, setSequenceDone] = useState(false);
+
+  // Lock global scroll when progress bar starts, and unlock when expansion is done
+  useEffect(() => {
+    if (showProgressBar && !sequenceDone) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = ''; // restore scrolling
+    }
+  }, [showProgressBar, sequenceDone]);
 
   // 1. Scroll-based Typing
   useEffect(() => {
@@ -66,31 +79,40 @@ function MagicTerminalSection() {
   // 2. Sequential Terminal Sequence
   useEffect(() => {
     if (commandFinished && progressStep < 20) {
-      // Step A: Wait then start bar
+      // Step A: Wait then show the bar at 0%
       const startTimeout = setTimeout(() => {
-        const interval = setInterval(() => {
-          setProgressStep(prev => {
-            if (prev >= 19) {
-              clearInterval(interval);
+        setShowProgressBar(true);
 
-              // Step B: Loading finished, wait then show bottom prompt
-              setTimeout(() => {
-                setShowBottomPrompt(true);
+        // Wait briefly so the user sees the empty bar before it fills
+        setTimeout(() => {
+          const interval = setInterval(() => {
+            setProgressStep(prev => {
+              if (prev >= 19) {
+                clearInterval(interval);
 
-                // Step C: Prompt shown, wait final delay then expand
+                // Step B: Loading finished, wait then show bottom prompt
                 setTimeout(() => {
-                  setIsExpanding(true);
-                }, 1200); // Final delay before site entrance
+                  setShowBottomPrompt(true);
 
-              }, 800); // Delay before second root@ appears
+                  // Step C: Prompt shown, wait final delay then expand
+                  setTimeout(() => {
+                    setIsExpanding(true);
+                    // Step D: Unlock scroll after the expansion transition completes
+                    setTimeout(() => {
+                      setSequenceDone(true);
+                    }, 1200);
+                  }, 1200); // Final delay before site entrance
 
-              return 20;
-            }
-            return prev + 1;
-          });
-        }, 1300 / 20);
-        return () => clearInterval(interval);
-      }, 800);
+                }, 800); // Delay before second root@ appears
+
+                return 20;
+              }
+              return prev + 1;
+            });
+          }, 1300 / 20);
+        }, 500); // 500ms delay before filling starts
+
+      }, 800); // 800ms initial wait before bar text appears
 
       return () => clearTimeout(startTimeout);
     }
@@ -98,7 +120,8 @@ function MagicTerminalSection() {
 
   return (
     <div className="magic-section-wrapper" ref={sectionRef}>
-      <div className="sticky-terminal-container">
+      <PixelStarsBackground isLocked={showProgressBar && !sequenceDone} />
+      <div className="sticky-terminal-container" style={{ zIndex: 10 }}>
 
         {/* The terminal window container that scales up drastically */}
         <motion.div
@@ -116,9 +139,9 @@ function MagicTerminalSection() {
               <pre className="ascii-art">{ASCII_ART}</pre>
 
               <div className="terminal-info">
-                <p>Name: <span className="highlight-dark-orange">Xavier Jara</span></p>
-                <p>Age: <span className="highlight-dark-orange">18</span></p>
-                <p>Terminal: <span className="highlight-dark-orange">Lycée Sainte Marie Antony</span></p>
+                <p>NAME:     <span className="highlight-dark-orange">Xavier Jara</span></p>
+                <p>AGE:      <span className="highlight-dark-orange">18</span></p>
+                <p>TERMINAL: <span className="highlight-dark-orange">Lycée Sainte Marie Antony</span></p>
               </div>
 
               <div className="terminal-prompt-line">
@@ -129,20 +152,18 @@ function MagicTerminalSection() {
 
               {/* Fake Loading Progress */}
               <div className="terminal-progress-area">
-                {commandFinished && (
-                  <div className="progress-bar-text" style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center' }}>
-                    <span style={{ color: 'var(--terminal-text)', minWidth: '220px' }}>Processing dependencies... </span>
-                    <span style={{ display: 'inline-flex', fontFamily: 'var(--font-mono)', fontSize: '1rem' }}>
-                      <span style={{ color: 'var(--text-main)' }}>[</span>
-                      <span style={{ color: 'var(--mistral-orange)' }}>{"█".repeat(progressStep)}</span>
-                      <span style={{ color: 'var(--mistral-border)' }}>{"█".repeat(20 - progressStep)}</span>
-                      <span style={{ color: 'var(--text-main)' }}>]</span>
-                    </span>
-                    <span style={{ color: 'var(--terminal-text)', marginLeft: '1rem' }}> (step {progressStep.toString().padStart(2, ' ')}/20)</span>
+                {(commandFinished && showProgressBar) && (
+                  <div className="progress-bar-text" style={{ marginTop: '2rem' }}>
+                    <span style={{ color: 'var(--terminal-text)' }}>Processing dependencies... </span>
+                    <span style={{ color: 'var(--text-main)' }}>[</span>
+                    <span style={{ color: 'var(--mistral-orange)' }}>{"#".repeat(progressStep)}</span>
+                    <span style={{ color: 'var(--mistral-border)' }}>{"-".repeat(20 - progressStep)}</span>
+                    <span style={{ color: 'var(--text-main)' }}>]</span>
+                    <span style={{ color: 'var(--terminal-text)' }}>  {progressStep.toString().padStart(2, ' ')}/20</span>
                   </div>
                 )}
                 {progressStep === 20 && (
-                  <div className="progress-bar-text success-msg" style={{ marginTop: '0.8rem' }}>
+                  <div className="progress-bar-text success-msg" style={{ marginTop: '1rem', color: '#FFCC00', fontWeight: 'bold' }}>
                     &gt; Success: Applicant data loaded. Expanding protocol...
                   </div>
                 )}
