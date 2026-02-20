@@ -15,13 +15,10 @@ const ASCII_ART = `██╗  ██╗ █████╗ ██╗   ██╗
 ╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝╚══════╝╚═╝  ╚═╝     ╚════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝
                                                                                 
                                                                                                      
-                                                                                                     
 ▄▄   ▄▄ ▄▄  ▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄   ▄▄▄  ▄▄      ▄▄ ▄▄  ▄▄▄   ▄▄▄▄ ▄▄ ▄▄  ▄▄▄ ▄▄▄▄▄▄ ▄▄ ▄▄  ▄▄▄  ▄▄  ▄▄   
 ██▀▄▀██ ██ ███▄▄   ██   ██▄█▄ ██▀██ ██      ██▄██ ██▀██ ██▀▀▀ ██▄█▀ ██▀██  ██   ██▄██ ██▀██ ███▄██   
-██   ██ ██ ▄▄██▀   ██   ██ ██ ██▀██ ██▄▄▄   ██ ██ ██▀██ ▀████ ██ ██ ██▀██  ██   ██ ██ ▀███▀ ██ ▀██   
-                                                                                                     
-                                                                                                     
-                                                                                                     
+██   ██ ██ ▄▄██▀   ██   ██ ██ ██▀██ ██▄▄▄   ██ ██ ██▀██ ▀████ ██ ██ ██▀██  ██   ██ ██ ▀███▀ ██ ▀██    
+                                                                                                                                                       
  ▄▄▄  ▄▄▄▄  ▄▄▄▄  ▄▄    ▄▄  ▄▄▄▄  ▄▄▄ ▄▄▄▄▄▄ ▄▄  ▄▄▄  ▄▄  ▄▄                                         
 ██▀██ ██▄█▀ ██▄█▀ ██    ██ ██▀▀▀ ██▀██  ██   ██ ██▀██ ███▄██                                         
 ██▀██ ██    ██    ██▄▄▄ ██ ▀████ ██▀██  ██   ██ ▀███▀ ██ ▀██                                         `;
@@ -58,9 +55,9 @@ function MagicTerminalSection() {
   const [showBottomPrompt, setShowBottomPrompt] = useState(false);
 
   // Scroll mappings mapped tightly to raw scrollYProgress
-  const typedCount = useTransform(scrollYProgress, [0, 0.25], [0, cmdLength]);
-  // Offset start to 0.35 so it sits visibly at 0 for a small scroll distance
-  const progressVal = useTransform(scrollYProgress, [0.35, 0.5], [0, 20]);
+  const typedCount = useTransform(scrollYProgress, [0, 0.3], [0, cmdLength]);
+  // Offset start to 0.42 so it sits visibly at 0 for a small scroll distance
+  const progressVal = useTransform(scrollYProgress, [0.42, 0.6], [0, 20]);
 
   useMotionValueEvent(typedCount, "change", (latest) => {
     setTypedCommand(commandText.substring(0, Math.floor(latest)));
@@ -71,25 +68,25 @@ function MagicTerminalSection() {
   });
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    setShowProgressBar(latest >= 0.28);
-    setShowBottomPrompt(latest > 0.52);
+    setShowProgressBar(latest >= 0.33);
+    setShowBottomPrompt(latest > 0.62);
   });
 
   // Terminal window expanding (slow start -> fast middle -> slow end)
   // Max scale capped at 15 to prevent Chrome GPU texture limit crash (> 8192px cutoff)
-  const terminalScale = useTransform(smoothProgress, [0.6, 0.65, 0.75, 0.8], [1, 1.5, 10, 15]);
-  const terminalOpacity = useTransform(smoothProgress, [0.6, 0.8], [1, 0]);
+  const terminalScale = useTransform(smoothProgress, [0.7, 0.73, 0.79, 0.82], [1, 1.5, 10, 15]);
+  const terminalOpacity = useTransform(smoothProgress, [0.7, 0.82], [1, 0]);
 
   // Orange bg fades in directly alongside terminal fading out
-  const orangeBgOpacity = useTransform(smoothProgress, [0.6, 0.8], [0, 1]);
+  const orangeBgOpacity = useTransform(smoothProgress, [0.7, 0.82], [0, 1]);
 
   // Container comes in slightly after
-  const containerOpacity = useTransform(smoothProgress, [0.75, 0.95], [0, 1]);
-  const containerScale = useTransform(smoothProgress, [0.75, 0.95], [0.8, 1]);
-  const containerY = useTransform(smoothProgress, [0.75, 0.95], [40, 0]);
+  const containerOpacity = useTransform(smoothProgress, [0.79, 0.91], [0, 1]);
+  const containerScale = useTransform(smoothProgress, [0.79, 0.91], [0.8, 1]);
+  const containerY = useTransform(smoothProgress, [0.79, 0.91], [40, 0]);
 
   return (
-    <div className="magic-section-wrapper" ref={sectionRef} style={{ height: "300vh" }}>
+    <div className="magic-section-wrapper" ref={sectionRef} style={{ height: "500vh" }}>
       <div className="sticky-terminal-container" style={{ zIndex: 10 }}>
         <PixelStarsBackground isLocked={false} scrollProgress={scrollYProgress} />
 
