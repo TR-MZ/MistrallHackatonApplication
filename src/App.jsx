@@ -7,23 +7,24 @@ import trophyImg from './assets/trophy.png';
 import terminalImg from './assets/terminal.png';
 import PixelStarsBackground from './PixelStarsBackground';
 
-const ASCII_ART = `███╗   ███╗██╗███████╗████████╗██████╗  █████╗ ██╗         ██╗    ██╗██╗    ██╗    
-████╗ ████║██║██╔════╝╚══██╔══╝██╔══██╗██╔══██╗██║         ██║    ██║██║    ██║    
-██╔████╔██║██║███████╗   ██║   ██████╔╝███████║██║         ██║ █╗ ██║██║ █╗ ██║    
-██║╚██╔╝██║██║╚════██║   ██║   ██╔══██╗██╔══██║██║         ██║███╗██║██║███╗██║    
-██║ ╚═╝ ██║██║███████║   ██║   ██║  ██║██║  ██║███████╗    ╚███╔███╔╝╚███╔███╔╝    
-╚═╝     ╚═╝╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝     ╚══╝╚══╝  ╚══╝╚══╝     
-                                                                                   
-██╗  ██╗ █████╗  ██████╗██╗  ██╗ █████╗ ████████╗██╗  ██╗ ██████╗ ███╗   ██╗       
-██║  ██║██╔══██╗██╔════╝██║ ██╔╝██╔══██╗╚══██╔══╝██║  ██║██╔═══██╗████╗  ██║       
-███████║███████║██║     █████╔╝ ███████║   ██║   ███████║██║   ██║██╔██╗ ██║       
-██╔══██║██╔══██║██║     ██╔═██╗ ██╔══██║   ██║   ██╔══██║██║   ██║██║╚██╗██║       
-██║  ██║██║  ██║╚██████╗██║  ██╗██║  ██║   ██║   ██║  ██║╚██████╔╝██║ ╚████║       
-╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝       
-                                                                                   
- ▄▄▄  ▄▄▄▄  ▄▄▄▄  ▄▄    ▄▄  ▄▄▄▄  ▄▄▄ ▄▄▄▄▄▄ ▄▄  ▄▄▄  ▄▄  ▄▄ 
-██▀██ ██▄█▀ ██▄█▀ ██    ██ ██▀▀▀ ██▀██  ██   ██ ██▀██ ███▄██ 
-██▀██ ██    ██    ██▄▄▄ ██ ▀████ ██▀██  ██   ██ ▀███▀ ██ ▀██`;
+const ASCII_ART = `██╗  ██╗ █████╗ ██╗   ██╗██╗███████╗██████╗          ██╗ █████╗ ██████╗  █████╗ 
+╚██╗██╔╝██╔══██╗██║   ██║██║██╔════╝██╔══██╗         ██║██╔══██╗██╔══██╗██╔══██╗
+ ╚███╔╝ ███████║██║   ██║██║█████╗  ██████╔╝         ██║███████║██████╔╝███████║
+ ██╔██╗ ██╔══██║╚██╗ ██╔╝██║██╔══╝  ██╔══██╗    ██   ██║██╔══██║██╔══██╗██╔══██║
+██╔╝ ██╗██║  ██║ ╚████╔╝ ██║███████╗██║  ██║    ╚█████╔╝██║  ██║██║  ██║██║  ██║
+╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝╚══════╝╚═╝  ╚═╝     ╚════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝
+                                                                                
+                                                                                                     
+                                                                                                     
+▄▄   ▄▄ ▄▄  ▄▄▄▄ ▄▄▄▄▄▄ ▄▄▄▄   ▄▄▄  ▄▄      ▄▄ ▄▄  ▄▄▄   ▄▄▄▄ ▄▄ ▄▄  ▄▄▄ ▄▄▄▄▄▄ ▄▄ ▄▄  ▄▄▄  ▄▄  ▄▄   
+██▀▄▀██ ██ ███▄▄   ██   ██▄█▄ ██▀██ ██      ██▄██ ██▀██ ██▀▀▀ ██▄█▀ ██▀██  ██   ██▄██ ██▀██ ███▄██   
+██   ██ ██ ▄▄██▀   ██   ██ ██ ██▀██ ██▄▄▄   ██ ██ ██▀██ ▀████ ██ ██ ██▀██  ██   ██ ██ ▀███▀ ██ ▀██   
+                                                                                                     
+                                                                                                     
+                                                                                                     
+ ▄▄▄  ▄▄▄▄  ▄▄▄▄  ▄▄    ▄▄  ▄▄▄▄  ▄▄▄ ▄▄▄▄▄▄ ▄▄  ▄▄▄  ▄▄  ▄▄                                         
+██▀██ ██▄█▀ ██▄█▀ ██    ██ ██▀▀▀ ██▀██  ██   ██ ██▀██ ███▄██                                         
+██▀██ ██    ██    ██▄▄▄ ██ ▀████ ██▀██  ██   ██ ▀███▀ ██ ▀██                                         `;
 
 function App() {
   return (
@@ -134,7 +135,7 @@ function MagicTerminalSection() {
               {/* Fake Loading Progress */}
               <div className="terminal-progress-area">
                 {showProgressBar && (
-                  <div className="progress-bar-text" style={{ marginTop: '2rem' }}>
+                  <div className="progress-bar-text" style={{ marginTop: '4cqi' }}>
                     <span style={{ color: 'var(--terminal-text)' }}>Processing dependencies... </span>
                     <span style={{ color: 'var(--text-main)' }}>[</span>
                     <span style={{ color: 'var(--mistral-orange)' }}>{"#".repeat(currentProgress)}</span>
@@ -144,7 +145,7 @@ function MagicTerminalSection() {
                   </div>
                 )}
                 {currentProgress === 20 && (
-                  <div className="progress-bar-text success-msg" style={{ marginTop: '1rem', fontWeight: 'bold' }}>
+                  <div className="progress-bar-text success-msg" style={{ marginTop: '2cqi', fontWeight: 'bold' }}>
                     &gt; Success: Applicant data loaded. Expanding protocol...
                   </div>
                 )}
@@ -162,7 +163,7 @@ function MagicTerminalSection() {
 
             {/* Bottom prompt */}
             {showBottomPrompt && (
-              <div className="terminal-prompt-line" style={{ marginTop: '0.5rem', marginBottom: 0 }}>
+              <div className="terminal-prompt-line" style={{ marginTop: '1cqi', marginBottom: 0 }}>
                 <span className="user-host">root@mistral:~$</span>
                 <span className="blinking-cursor"></span>
               </div>
@@ -258,7 +259,7 @@ function TimelineSections() {
 function ProjectCard({ image, title, date, description, inverted }) {
   return (
     <motion.div
-      className={`project-card ${inverted ? 'inverted' : ''}`}
+      className={`project-card ${inverted ? 'inverted' : ''} `}
       initial={{ x: inverted ? 100 : -100, opacity: 0 }}
       whileInView={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.6, type: "spring", bounce: 0.4 }}
