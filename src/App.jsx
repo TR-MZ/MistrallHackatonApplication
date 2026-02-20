@@ -120,8 +120,8 @@ function MagicTerminalSection() {
 
   return (
     <div className="magic-section-wrapper" ref={sectionRef}>
-      <PixelStarsBackground isLocked={showProgressBar && !sequenceDone} />
       <div className="sticky-terminal-container" style={{ zIndex: 10 }}>
+        <PixelStarsBackground isLocked={showProgressBar && !sequenceDone} scrollProgress={scrollYProgress} />
 
         {/* The terminal window container that scales up drastically */}
         <motion.div

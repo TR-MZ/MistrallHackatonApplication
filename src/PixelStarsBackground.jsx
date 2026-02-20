@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 // eslint-disable-next-line no-unused-vars
-import { motion } from 'framer-motion';
+import { motion, useTransform, useVelocity, useSpring, useAnimationFrame } from 'framer-motion';
+import { useRef } from 'react';
 // Generate a fixed set of particles outside the component to satisfy React pure function rules
 // and avoid recalculating or causing effect loops.
-const generateParticles = () => {
-    const numParticles = 40; // Dense enough but performant
+const generateParticles = (numParticles, idPrefix) => {
     const items = [];
     const colors = ['#FF7000', '#FFCC00', '#444444']; // Orange, Yellow, Dark Grey
     const shapes = ['square', 'plus'];
 
     for (let i = 0; i < numParticles; i++) {
         items.push({
-            id: i,
+            id: idPrefix + '-' + i,
             x: Math.random() * 100, // percentage string
             y: Math.random() * 100,
             size: Math.random() * 4 + 2, // 2px to 6px
@@ -25,10 +25,11 @@ const generateParticles = () => {
     return items;
 };
 
-const INITIAL_PARTICLES = generateParticles();
+const BASE_PARTICLES = generateParticles(40, 'base');
+const EXTRA_PARTICLES = generateParticles(60, 'extra'); // appear on scroll
 
 // eslint-disable-next-line
-function PixelStarsBackground({ isLocked }) {
+function PixelStarsBackground({ isLocked, scrollProgress }) {
     const [, setWindowSize] = useState({
         width: typeof window !== 'undefined' ? window.innerWidth : 1000,
         height: typeof window !== 'undefined' ? window.innerHeight : 800,
@@ -42,7 +43,86 @@ function PixelStarsBackground({ isLocked }) {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const [particles] = useState(INITIAL_PARTICLES);
+    const [baseParticles] = useState(BASE_PARTICLES);
+    const [extraParticles] = useState(EXTRA_PARTICLES);
+
+    // Safeguard in case scrollProgress isn't provided
+    const safeScroll = scrollProgress || { get: () => 0, onChange: () => { } };
+
+    // Fade in EXTRA stars quickly as user begins scrolling (0 to 10% mark)
+    const extraStarOpacity = useTransform(safeScroll, [0, 0.1], [0, 1]);
+
+    // Track scroll velocity for that "warp speed" effect
+    const scrollVelocity = useVelocity(safeScroll);
+    const smoothVelocity = useSpring(scrollVelocity, {
+        damping: 50,
+        stiffness: 400
+    });
+
+    // Map velocity to a speed multiplier (base speed + high scroll speed)
+    const velocityFactor = useTransform(smoothVelocity, [0, 1000], [0, 5], {
+        clamp: false
+    });
+
+    const yRef = useRef(0);
+    const [dynamicY, setDynamicY] = useState(0);
+
+    // Infinite manual scroll loop that speeds up based on scroll velocity
+    useAnimationFrame((t, delta) => {
+        if (!isLocked) {
+            // Base speed + extreme speed based on user scroll velocity
+            let speed = 0.05 + Math.abs(velocityFactor.get() * 5);
+            yRef.current -= speed * (delta / 16);
+
+            // Loop back to top to create infinite starfield illusion
+            if (yRef.current <= -100) {
+                yRef.current = 0;
+            }
+            setDynamicY(yRef.current);
+        }
+    });
+
+    const renderParticle = (p) => (
+        <motion.div
+            key={p.id}
+            style={{
+                position: 'absolute',
+                left: `${p.x}%`,
+                width: p.shape === 'square' ? p.size : 'auto',
+                height: p.shape === 'square' ? p.size : 'auto',
+                backgroundColor: p.shape === 'square' ? p.color : 'transparent',
+                color: p.color,
+                fontSize: `${p.size * 2}px`,
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 'bold',
+                lineHeight: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: 0.15, // Base very low opacity
+            }}
+            initial={{ y: `${p.y}vh` }}
+            animate={{
+                y: [`${p.y}vh`, '-10vh'], // Drift upwards constantly
+                opacity: [0.15, 0.5, 0.15], // Keep Twinkling
+            }}
+            transition={{
+                y: {
+                    duration: p.duration,
+                    repeat: Infinity,
+                    ease: 'linear',
+                    delay: p.delay,
+                },
+                opacity: {
+                    duration: p.opacitySpeed,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                },
+            }}
+        >
+            {p.shape === 'plus' ? '+' : ''}
+        </motion.div>
+    );
 
     return (
         <div
@@ -51,53 +131,33 @@ function PixelStarsBackground({ isLocked }) {
                 top: 0,
                 left: 0,
                 width: '100vw',
-                height: '100%',
+                height: '100vh',
                 overflow: 'hidden',
                 zIndex: -1, // Strictly Behind the terminal
                 pointerEvents: 'none', // Don't block scroll/clicks
             }}
         >
-            {particles.map((p) => (
-                <motion.div
-                    key={p.id}
-                    style={{
-                        position: 'absolute',
-                        left: `${p.x}%`,
-                        width: p.shape === 'square' ? p.size : 'auto',
-                        height: p.shape === 'square' ? p.size : 'auto',
-                        backgroundColor: p.shape === 'square' ? p.color : 'transparent',
-                        color: p.color,
-                        fontSize: `${p.size * 2}px`,
-                        fontFamily: 'var(--font-mono)',
-                        fontWeight: 'bold',
-                        lineHeight: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        opacity: 0.1, // Base very low opacity
-                    }}
-                    initial={{ y: `${p.y}vh` }}
-                    animate={{
-                        y: isLocked ? undefined : [`${p.y}vh`, '-10vh'], // Pause Drift upwards
-                        opacity: [0.1, 0.4, 0.1], // Keep Twinkling
-                    }}
-                    transition={{
-                        y: {
-                            duration: p.duration,
-                            repeat: Infinity,
-                            ease: 'linear',
-                            delay: p.delay,
-                        },
-                        opacity: {
-                            duration: p.opacitySpeed,
-                            repeat: Infinity,
-                            ease: 'easeInOut',
-                        },
-                    }}
-                >
-                    {p.shape === 'plus' ? '+' : ''}
-                </motion.div>
-            ))}
+            {/* Always visible base stars */}
+            <div style={{ position: 'absolute', width: '100%', height: '100%' }}>
+                {baseParticles.map(renderParticle)}
+            </div>
+
+            {/* Scroll-reactive EXTRA stars wrapper */}
+            <motion.div
+                style={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '200%', // Double height to allow infinite looping
+                    opacity: extraStarOpacity,
+                    y: `${dynamicY}vh`,
+                }}
+            >
+                {/* Render two sets of extra particles so the loop is seamless */}
+                {extraParticles.map(renderParticle)}
+                <div style={{ position: 'absolute', top: '100%', width: '100%', height: '100%' }}>
+                    {extraParticles.map(renderParticle)}
+                </div>
+            </motion.div>
 
             {/* Left Wireframe - True 3D CSS Cube */}
             <div
