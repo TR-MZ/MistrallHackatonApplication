@@ -8,17 +8,17 @@ import terminalImg from './assets/terminal.png';
 import PixelStarsBackground from './PixelStarsBackground';
 
 // Auto-detect all media in each project folder
-const _fluxRaw = import.meta.glob('./assets/flux/*', { eager: true });
-const _blobCanvasRaw = import.meta.glob('./assets/blob_canvas/*', { eager: true });
-const _pluginsRaw = import.meta.glob('./assets/other_studio_plugins/*', { eager: true });
-const _teachingRaw = import.meta.glob('./assets/student_teaching_app/*', { eager: true });
-const _youngerRaw = import.meta.glob('./assets/younger/*', { eager: true });
+const _fluxRaw = import.meta.glob('./assets/flux/*', { eager: true, query: '?url', import: 'default' });
+const _blobCanvasRaw = import.meta.glob('./assets/blob_canvas/*', { eager: true, query: '?url', import: 'default' });
+const _pluginsRaw = import.meta.glob('./assets/other_studio_plugins/*', { eager: true, query: '?url', import: 'default' });
+const _teachingRaw = import.meta.glob('./assets/student_teaching_app/*', { eager: true, query: '?url', import: 'default' });
+const _youngerRaw = import.meta.glob('./assets/younger/*', { eager: true, query: '?url', import: 'default' });
 
 function globToSortedUrls(raw) {
   return Object.entries(raw)
     .filter(([path]) => !path.endsWith('.DS_Store'))
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([, mod]) => mod.default);
+    .map(([, url]) => url);
 }
 
 const fluxImages   = globToSortedUrls(_fluxRaw);
